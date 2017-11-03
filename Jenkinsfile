@@ -187,11 +187,11 @@
 				    
 				    withCredentials([usernamePassword(credentialsId: git_creds, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
     					sh "git tag -a -m '$tagMessage' $buildVersion"
-    					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.hpe.com/satyanarayana-raju/GlobalTaxEngine.git --tags')
+    					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/EnterpriseServices/jenkins_pipeline_java_maven.git --tags')
 				    }
 				echo "after with Creds"
 				    
-                                withCredentials(gitCreds) {
+                                /*withCredentials(gitCreds) {
 					echo "inside withCredentials"
 					echo "git push ${repoWithCreds projectRepo}.git --tags "
 				    
@@ -202,7 +202,7 @@
 				
 					
 					//echo "git push --tags $repoWithCreds"+".git"
-                                }
+                                }*/
                             }
                             catch (Exception e) {
                                 sh "git tag --delete $buildVersion"
