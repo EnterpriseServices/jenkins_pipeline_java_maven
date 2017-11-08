@@ -70,11 +70,11 @@
                 
                 node {
                     stage("Checkout") {
-                        checkout scm
+                        //checkout scm
                 	echo "GIT_USERNAME  " + env.GIT_USERNAME
                         // Refresh tags, in case something was aborted in a previous run
-                        sh "git tag -l | xargs git tag -d"
-                        sh "git fetch --all"
+                        //sh "git tag -l | xargs git tag -d"
+                        //sh "git fetch --all"
                 
                         projectRepo = sh script: "git ls-remote --get-url",
                                 returnStdout: true
