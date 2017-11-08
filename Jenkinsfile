@@ -19,7 +19,7 @@
                                    description: "Check this box to confirm the release."]]] */
               ])
                 
-               def git_creds = 'GIT_CRED_ID2'
+               def git_creds = 'GIT_CRED_ID'
                 
                 def buildVersion
                 def gitPrevTag
@@ -82,85 +82,9 @@
                         echo "Project URL is $projectRepo"
                     }
                 
-                    stage("Versioning") {
-                        def mavenPom = readMavenPom file: 'pom.xml'
-                        echo "POM version is ${mavenPom.version}"
+                    
                 
-                        buildVersion = mavenPom.version.trim().replace('-SNAPSHOT', '')
-			    echo "buildVersion::::" + buildVersion
-			    buildVersion = ""
-			    
-                
-                        if (env.BRANCH_NAME != 'master') {
-				echo "env.BRANCH_NAME::" + env.BRANCH_NAME
-                            buildVersion += '-' + env.BRANCH_NAME
-				echo "buildVersion::" + buildVersion
-				buildVersion = ""
-                        }
-                
-                        if (buildType == 'snapshot') {
-                            buildVersion += '-SNAPSHOT'
-                        } else if (buildType == 'release') {
-                            echo "Determining existing tag versions of $buildVersion"
-                            //def tags = sh script: "git tag --list $buildVersion*",
-				def tags = sh script: "git tag --list $buildVersion",
-                                    returnStdout: true
-                            echo tags
-                            existingTagVersions = [0]
-                            for (String tag in tags.split('\\s')) {
-                                tag = tag.trim()
-				echo "Tag name: $tag"
-                                if (tag == '') continue
-                                existingTagVersions <<
-                                        (int) ((tag.tokenize('-')[-1]).toInteger())
-                            }
-                            existingVersionsCnt = existingTagVersions.size()
-			    echo "existingVersionsCnt $existingVersionsCnt"
-                            maxExistingVersion = String.valueOf(existingTagVersions.max())
-			    //maxExistingVersion = String.valueOf(1)
-			    echo "maxExistingVersion $maxExistingVersion"
-                            thisVersion = String.valueOf(existingTagVersions.max() + 1)
-                            if (existingVersionsCnt > 1) {
-                                echo "Found ${existingVersionsCnt - 1} existing tag versions"
-                                echo "Highest tag version found is $maxExistingVersion"
-                            } else {
-                                echo "No existing tags versions found"
-                            }
-                            //buildVersion += '-' + thisVersion
-				buildVersion = thisVersion
-                        }
-                        echo "buildNumber version $buildVersion"
-                    }
-                
-                    /*stage("Build") {
-                        echo "Setting POM version numbers to $buildVersion"
-                        try {
-                            runMaven "versions:set -DnewVersion=$buildVersion"
-				echo "after runMaven"
-                            if (releaseJob) {
-				    echo "inside releaseJob"
-                            	echo "releaseJob=$releaseJob; --update-snapshots clean deploy"
-                               runMaven "--update-snapshots clean deploy"
-				    echo "after runMaven clean deploy"
-                            } else {
-				    echo "inside else releaseJob"
-                                echo "releaseJob=$releaseJob; only deploy"
-                               runMaven "clean deploy"
-				    echo "after runMaven only deploy"
-                               //runMaven "deploy"
-                            }
-                        } 
-                         catch(e)
-                         {
-                          echo "Build failure:maven build failed $e"
-                          throw e
-                         }
-                        finally {
-                            echo "Reverting POM version numbers"
-                            runMaven "versions:revert"
-                        }
-                    }*/
-					
+                    
                     stage("Publish") {
                         if (buildType == 'release') {
                             echo "Finding previous tag"
@@ -171,7 +95,7 @@
                             } catch (Exception e) {
                                 gitPrevTag == ''
                             }
-			
+				
 				
 				
                             echo "Tagging the release"
@@ -180,19 +104,13 @@
 				sh "git config --get remote.origin.url"
 				//echo "ssh -T git@github.hpe.com"
 				//sh "ssh -T git@github.hpe.com"
-                            //sh "git tag -a -m '$tagMessage' $buildVersion"
+                            sh "git tag -a -m '$tagMessage' $buildVersion"
 				echo "before try block"
                             try {
 				    echo "inside try block"
-				    
-				    withCredentials([usernamePassword(credentialsId: git_creds, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-    					sh "git tag -a -m '$tagMessage' $buildVersion"
-    					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/EnterpriseServices/jenkins_pipeline_java_maven.git --tags')
-				    }
-				echo "after with Creds"
-				    
-                                /*withCredentials(gitCreds) {
+                                withCredentials(gitCreds) {
 					echo "inside withCredentials"
+					echo "git push --tags $repoWithCreds"+".git"
 					echo "git push ${repoWithCreds projectRepo}.git --tags "
 				    
                                     	sh "git push ${repoWithCreds projectRepo}.git --tags "
@@ -202,7 +120,7 @@
 				
 					
 					//echo "git push --tags $repoWithCreds"+".git"
-                                }*/
+                                }
                             }
                             catch (Exception e) {
                                 sh "git tag --delete $buildVersion"
