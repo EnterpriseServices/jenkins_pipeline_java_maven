@@ -19,7 +19,7 @@
                                    description: "Check this box to confirm the release."]]] */
               ])
                 
-               def git_creds = 'GIT_CRED_ID'
+               def git_creds = 'GITHUB_CRED_ID'
                 
                 def buildVersion
                 def gitPrevTag
